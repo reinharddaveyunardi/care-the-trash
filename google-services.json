@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "342432785097",
+    "firebase_url": "https://care-the-trash-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "care-the-trash",
+    "storage_bucket": "care-the-trash.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:342432785097:android:1b3a9cd16ff06b3458a318",
+        "android_client_info": {
+          "package_name": "com.carethetrash.carethetrash"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "342432785097-g6gcggtgurv1rovj5ndu48rbdfsn4mri.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA7RDFgA7jt3D2fxzsmV77CIShPkD_tRig"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "342432785097-bo4tc4qg4qh4n9utbvjf81701901eg4l.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
