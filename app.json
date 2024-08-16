@@ -16,6 +16,11 @@
             "supportsTablet": true
         },
         "android": {
+            "config": {
+                "googleMaps": {
+                    "apiKey": "AIzaSyDZ1efMT-saXsY1sjx0ZMJ1ofBkfLaOa-A"
+                }
+            },
             "permissions": ["WRITE_EXTERNAL_STORAGE"],
             "adaptiveIcon": {
                 "foregroundImage": "./assets/images/adaptive-icon.png",

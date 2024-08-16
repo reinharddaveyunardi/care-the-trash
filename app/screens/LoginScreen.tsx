@@ -5,19 +5,48 @@ import { ButtonStylesPresets, styles } from "../styling";
 import { FB_AUTH } from "@/FirebaseConfig";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 
+const getFirebaseErrorMessage = (error: any) => {
+    let errMess = null;
+
+    switch (error) {
+        case "auth/user-not-found":
+            errMess = "User not found";
+            break;
+        case "auth/wrong-password":
+            errMess = "Wrong password";
+            break;
+        case "auth/email-already-in-use":
+            errMess = "Email already in use";
+            break;
+        case "auth/invalid-email":
+            errMess = "Invalid email";
+            break;
+        case "auth/invalid-password":
+            errMess = "Invalid password";
+            break;
+        default:
+            errMess = `Something went wrong, ${error}`;
+    }
+
+    return errMess;
+};
+
 const LoginScreen = ({ navigation }: any) => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const auth = FB_AUTH;
 
     const signIn = async () => {
         setLoading(true);
+        setError(null);
         try {
             const response = await signInWithEmailAndPassword(auth, email, password);
             console.log(response);
         } catch (error: any) {
             console.log(error);
+            setError(error.message);
         } finally {
             setLoading(false);
         }

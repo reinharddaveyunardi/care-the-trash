@@ -12,6 +12,8 @@ import { FB_AUTH } from "@/FirebaseConfig";
 import SettingsScreen from "./screens/SettingsScreen";
 import RegisterScreen from "./screens/RegisterScreen";
 import ProfileScreen from "./screens/ProfileScreen";
+import OrderScreen from "./screens/[type]/OrderScreen";
+import HistoryScreen from "./screens/HistoryScreen";
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -25,6 +27,9 @@ function InsideLayout() {
             <InsideStack.Group screenOptions={{ presentation: "modal" }}>
                 <InsideStack.Screen name="poinModal" component={ModalScreen} options={{ headerShown: false }} />
             </InsideStack.Group>
+            <InsideStack.Screen name="Organik" component={OrderScreen} options={{ headerShown: false }} />
+            <InsideStack.Screen name="Anorganik" component={OrderScreen} options={{ headerShown: false }} />
+            <InsideStack.Screen name="Limbah" component={OrderScreen} options={{ headerShown: false }} />
         </InsideStack.Navigator>
     );
 }
@@ -51,11 +56,11 @@ function MenuDrawer() {
                     }}
                 />
                 <Drawer.Screen
-                    name="Setting"
-                    component={SettingsScreen}
+                    name="History"
+                    component={HistoryScreen}
                     options={{
                         headerShown: false,
-                        drawerIcon: () => <Ionicons name="settings" color={"#56876D"} />,
+                        drawerIcon: () => <Ionicons name="time" color={"#56876D"} />,
                     }}
                 />
                 <Drawer.Screen

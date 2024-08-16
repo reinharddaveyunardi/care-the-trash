@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Button, Image, ScrollView, StatusBar, Text, TouchableOpacity, View } from "react-native";
+import { Image, ScrollView, StatusBar, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Progress from "react-native-progress";
-import { color, menu, styles } from "../styling";
+import { color } from "../styling";
 import { Ionicons } from "@expo/vector-icons";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { FB_AUTH, FS_DB } from "@/FirebaseConfig";
+import MapView from "react-native-maps";
 
 const db = FS_DB;
 
@@ -19,7 +20,7 @@ const MenuScreen = ({ navigation }: any) => {
         const fetchUserData = async () => {
             const user = FB_AUTH.currentUser;
             if (user) {
-                const docRef = doc(db, "users", user.uid);
+                const docRef = doc(db, `users/${user.uid}/pointInfo/${user.uid}`);
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
                     const data = docSnap.data();
@@ -51,7 +52,7 @@ const MenuScreen = ({ navigation }: any) => {
         const user = FB_AUTH.currentUser;
         if (user) {
             await setDoc(
-                doc(db, "users", user.uid),
+                doc(db, `users/${user.uid}/pointInfo/${user.uid}`),
                 {
                     level: newLevel,
                     poin: updatedPoints,
@@ -138,6 +139,20 @@ const MenuScreen = ({ navigation }: any) => {
                                     </Text>
                                 </TouchableOpacity>
                             </View>
+                        </View>
+                    </View>
+                </View>
+                <View style={{ flex: 1, justifyContent: "center", alignItems: "center", marginTop: 20 }}>
+                    <View style={{ display: "flex", flexDirection: "row", gap: 75 }}>
+                        <View>
+                            <TouchableOpacity onPress={() => navigation.navigate("Organik", { wasteCategory: "Organic" })}>
+                                <Text>Organic</Text>
+                            </TouchableOpacity>
+                        </View>
+                        <View>
+                            <TouchableOpacity onPress={() => navigation.navigate("Anorganik", { wasteCategory: "Inorganic" })}>
+                                <Text>Inorganic</Text>
+                            </TouchableOpacity>
                         </View>
                     </View>
                 </View>

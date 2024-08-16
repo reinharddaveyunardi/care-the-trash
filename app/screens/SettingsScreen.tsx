@@ -1,6 +1,5 @@
 import { FB_AUTH } from "@/FirebaseConfig";
 import { NavgiationsProps } from "@/interface";
-import { NavigationProp } from "@react-navigation/native";
 import React from "react";
 import { Button, Text, View } from "react-native";
 
