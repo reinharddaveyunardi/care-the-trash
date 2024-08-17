@@ -1,7 +1,5 @@
-import { useState, useEffect } from "react";
-import { FB_AUTH, FS_DB } from "@/FirebaseConfig";
-import React from "react";
-import { Button, ScrollView, Text, TextInput, View } from "react-native";
+import React, { useState, useEffect } from "react";
+import { ScrollView, Text, TextInput, View, ActivityIndicator } from "react-native";
 import MapView from "react-native-maps";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Location from "expo-location";
@@ -11,6 +9,7 @@ import { TouchableOpacity } from "react-native-gesture-handler";
 import Icon from "react-native-vector-icons/AntDesign";
 import { color } from "@/app/styling";
 import { doc, setDoc } from "firebase/firestore";
+import { FB_AUTH, FS_DB } from "@/FirebaseConfig";
 
 function generateRandomUid(length: number = 8): string {
     const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -28,7 +27,7 @@ function OrderScreen({ route, navigation }: any) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [userLocation, setUserLocation] = useState<coordsInfo | null>(null);
-    const [err, setErr] = useState<string | null>(null);
+    const [locationError, setLocationError] = useState<string | null>(null);
     const { wasteCategory } = route.params;
     const db = FS_DB;
 
@@ -46,6 +45,7 @@ function OrderScreen({ route, navigation }: any) {
                 await setDoc(doc(db, `users/${user.uid}/history/${randomUid}`), orderData, { merge: true });
                 console.log("Order stored in history with ID: ", randomUid);
             } catch (error) {
+                setError("Failed to store order. Please try again.");
                 console.error("Error writing document: ", error);
             }
         }
@@ -60,14 +60,18 @@ function OrderScreen({ route, navigation }: any) {
 
     useEffect(() => {
         (async () => {
-            let { status } = await Location.requestForegroundPermissionsAsync();
-            if (status !== "granted") {
-                setErr("Permission to access location was denied");
-                return;
-            }
+            try {
+                let { status } = await Location.requestForegroundPermissionsAsync();
+                if (status !== "granted") {
+                    setLocationError("Permission to access location was denied");
+                    return;
+                }
 
-            let location = await Location.getCurrentPositionAsync({});
-            setUserLocation(location);
+                let location = await Location.getCurrentPositionAsync({});
+                setUserLocation(location);
+            } catch (error) {
+                setLocationError("Failed to fetch location. Please try again.");
+            }
         })();
     }, []);
 
@@ -81,6 +85,7 @@ function OrderScreen({ route, navigation }: any) {
                     latitudeDelta: 0.0922,
                     longitudeDelta: 0.0421,
                 }}
+                showsUserLocation={true}
             />
             <View
                 style={{
@@ -145,13 +150,18 @@ function OrderScreen({ route, navigation }: any) {
                                 marginTop: 10,
                                 padding: 10,
                             }}
-                            placeholder="manual input (automatic location still development)"
+                            placeholder="manual input (automatic location still in development)"
                         />
                     </View>
-                    <TouchableOpacity style={{ marginTop: 20 }} onPress={handleOrder} disabled={loading}>
-                        <Text>Order</Text>
+                    <TouchableOpacity
+                        style={{ marginTop: 20, backgroundColor: loading ? "#ccc" : color.primaryColor, padding: 10, borderRadius: 10, height: 40 }}
+                        onPress={handleOrder}
+                        disabled={loading}
+                    >
+                        {loading ? <ActivityIndicator color="#fff" /> : <Text style={{ color: "white", textAlign: "center" }}>Order</Text>}
                     </TouchableOpacity>
-                    {error && <Text style={{ color: "red" }}>{error}</Text>}
+                    {error && <Text style={{ color: "red", marginTop: 10 }}>{error}</Text>}
+                    {locationError && <Text style={{ color: "red", marginTop: 10 }}>{locationError}</Text>}
                 </ScrollView>
             </View>
         </SafeAreaView>

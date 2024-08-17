@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Image, ScrollView, StatusBar, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, StatusBar, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FB_AUTH, FS_DB } from "@/FirebaseConfig";
-import { doc, getDocs, collection, query, onSnapshot } from "firebase/firestore";
+import { collection, onSnapshot } from "firebase/firestore";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { format } from "date-fns";
