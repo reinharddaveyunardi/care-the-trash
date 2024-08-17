@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Image, ScrollView, StatusBar, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FB_AUTH, FS_DB } from "@/FirebaseConfig";
-import { doc, getDocs, collection, query } from "firebase/firestore";
+import { doc, getDocs, collection, query, onSnapshot } from "firebase/firestore";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { format } from "date-fns";
@@ -15,23 +15,19 @@ const HistoryScreen = ({ navigation }: any) => {
 
     const db = FS_DB;
 
-    const fetchHistory = async () => {
+    const fetchHistory = () => {
         const user = FB_AUTH.currentUser;
         if (user) {
             const historyRef = collection(db, `users/${user.uid}/history/`);
-            const historyQuery = query(historyRef);
-
-            try {
-                const querySnapshot = await getDocs(historyQuery);
-                const fetchedHistory = querySnapshot.docs.map((doc) => ({
+            const query = onSnapshot(historyRef, (snapshot) => {
+                const fetchedHistory = snapshot.docs.map((doc) => ({
                     id: doc.id,
                     ...doc.data(),
                 }));
                 setHistory(fetchedHistory);
                 setFilteredHistory(fetchedHistory);
-            } catch (error) {
-                console.error("Error fetching documents: ", error);
-            }
+            });
+            return () => query();
         }
     };
 
