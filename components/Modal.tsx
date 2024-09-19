@@ -1,12 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import {
-    Button,
-    View,
-    Text,
-    ScrollView,
-    TouchableOpacity,
-    Image,
-} from "react-native";
+import { Button, View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Progress from "react-native-progress";
 import { color } from "@/app/styling";
@@ -41,14 +34,7 @@ function ModalScreen({ navigation, route }: any) {
                         elevation: 5,
                     }}
                 >
-                    <Ionicons
-                        name="arrow-back"
-                        size={24}
-                        color="black"
-                        left={25}
-                        top={25}
-                        onPress={() => navigation.goBack()}
-                    />
+                    <Ionicons name="arrow-back" size={24} color="black" left={25} top={25} onPress={() => navigation.goBack()} />
                 </View>
                 <View
                     style={{
@@ -70,12 +56,7 @@ function ModalScreen({ navigation, route }: any) {
                         <Text>Your Level: {level}</Text>
                         <View>
                             <Text>Progress: {Math.round(progress * 100)}%</Text>
-                            <Progress.Bar
-                                progress={progress}
-                                width={230}
-                                borderColor={color.secColor}
-                                color={color.secColor}
-                            />
+                            <Progress.Bar progress={progress} width={230} borderColor={color.secColor} color={color.secColor} />
                         </View>
                     </View>
                 </View>
@@ -96,22 +77,10 @@ function ModalScreen({ navigation, route }: any) {
                     Redeem
                 </Text>
                 <View style={{ gap: 20, paddingBottom: 20 }}>
-                    <RedeemCard
-                        title="Spinach"
-                        category="Vegetable"
-                        price={100}
-                    />
-                    <RedeemCard
-                        title="Carrot"
-                        category="Vegetable"
-                        price={150}
-                    />
+                    <RedeemCard title="Spinach" category="Vegetable" price={100} />
+                    <RedeemCard title="Carrot" category="Vegetable" price={150} />
                     <RedeemCard title="Apple" category="Fruit" price={200} />
-                    <RedeemCard
-                        title="Pineapple"
-                        category="Fruit"
-                        price={250}
-                    />
+                    <RedeemCard title="Pineapple" category="Fruit" price={250} />
                 </View>
             </ScrollView>
         </SafeAreaView>
@@ -142,10 +111,7 @@ function RedeemCard({ navigation, title, category, price }: any) {
                     borderRadius: 10,
                 }}
             >
-                <Image
-                    source={getImage(title)}
-                    style={{ width: 100, height: 100, alignItems: "center" }}
-                />
+                <Image source={getImage(title)} style={{ width: 100, height: 100, alignItems: "center" }} />
                 <View>
                     <Text>Name: {title}</Text>
                     <Text>Category: {category}</Text>
@@ -160,9 +126,7 @@ function RedeemCard({ navigation, title, category, price }: any) {
                     }}
                     onPress={() => navigation.navigate("(redeemItemInfo)")}
                 >
-                    <Text style={{ color: color.white }}>
-                        More Information (Not Available)
-                    </Text>
+                    <Text style={{ color: color.white }}>More Information (Not Available)</Text>
                 </TouchableOpacity>
             </View>
         </View>

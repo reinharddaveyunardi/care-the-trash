@@ -56,8 +56,24 @@ const HistoryScreen = ({ navigation }: any) => {
         applyFilters();
     }, [categoryFilter, timeFilter]);
 
+    function formatPrice(number: number) {
+        return new Intl.NumberFormat("id-ID", {
+            style: "currency",
+            currency: "IDR",
+        }).format(number);
+    }
+
+    function getCatPic(category: string) {
+        switch (category) {
+            case "Organic":
+                return <Ionicons name="leaf-outline" size={40} color={"#54B159"} />;
+            case "Inorganic":
+                return <Ionicons name="water-outline" size={40} color={"#28BBDB"} />;
+            default:
+        }
+    }
     return (
-        <SafeAreaView style={{ marginTop: 20 }}>
+        <SafeAreaView style={{ marginTop: 40 }}>
             <StatusBar backgroundColor="#18341A" />
             <View>
                 <Ionicons name="menu" size={20} left={20} onPress={() => navigation.openDrawer()} />
@@ -72,12 +88,18 @@ const HistoryScreen = ({ navigation }: any) => {
                 <ScrollView>
                     {filteredHistory.length > 0 ? (
                         filteredHistory.map((item) => (
-                            <View key={item.id} style={{ padding: 10, borderBottomWidth: 1, borderColor: "#ccc" }}>
-                                <Text>Address: {item.address}</Text>
-                                <Text>Weight: {item.weight} kg</Text>
-                                <Text>Category: {item.category}</Text>
-                                <Text>Time: {format(new Date(item.time), "MM/dd/yyyy HH:mm")}</Text>
-                                <Text>Cost: Rp ..</Text>
+                            <View
+                                key={item.id}
+                                style={{ padding: 10, borderBottomWidth: 1, borderColor: "#ccc", display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-around" }}
+                            >
+                                <View>{getCatPic(item.category)}</View>
+                                <View>
+                                    <Text>Address: {item.address}</Text>
+                                    <Text>Weight: {item.weight} kg</Text>
+                                    <Text>Category: {item.category}</Text>
+                                    <Text>Time: {format(new Date(item.time), "MM/dd/yyyy HH:mm")}</Text>
+                                    <Text>Cost: {formatPrice(item.weight * 400 * item.distance)}</Text>
+                                </View>
                             </View>
                         ))
                     ) : (

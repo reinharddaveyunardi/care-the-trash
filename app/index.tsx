@@ -14,6 +14,7 @@ import RegisterScreen from "./screens/RegisterScreen";
 import ProfileScreen from "./screens/ProfileScreen";
 import OrderScreen from "./screens/[type]/OrderScreen";
 import HistoryScreen from "./screens/HistoryScreen";
+import ReceiptScreen from "./screens/receipt";
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -30,6 +31,7 @@ function InsideLayout() {
             <InsideStack.Screen name="Organik" component={OrderScreen} options={{ headerShown: false }} />
             <InsideStack.Screen name="Anorganik" component={OrderScreen} options={{ headerShown: false }} />
             <InsideStack.Screen name="Limbah" component={OrderScreen} options={{ headerShown: false }} />
+            <InsideStack.Screen name="Receipt" component={ReceiptScreen} options={{ headerShown: false }} />
         </InsideStack.Navigator>
     );
 }
@@ -95,7 +97,7 @@ export default function Index() {
 
     useEffect(() => {
         onAuthStateChanged(FB_AUTH, (user) => {
-            console.log("user", user);
+            console.log(`%cUser Status:`, "background: yellow;", user);
             setUser(user);
         });
     }, []);

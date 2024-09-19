@@ -6,7 +6,6 @@ import { color } from "../styling";
 import { Ionicons } from "@expo/vector-icons";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { FB_AUTH, FS_DB } from "@/FirebaseConfig";
-import MapView from "react-native-maps";
 
 const db = FS_DB;
 
