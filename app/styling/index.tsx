@@ -1,4 +1,4 @@
-import { StyleSheet } from "react-native";
+import {StyleSheet} from "react-native";
 
 export const color = {
     primaryColor: "#04724D",
@@ -69,7 +69,7 @@ export const ButtonStylesPresets = StyleSheet.create({
         height: 50,
         paddingVertical: 5,
         paddingHorizontal: 10,
-        borderRadius: 100,
+        borderRadius: 25,
     },
     borderedBtn: {
         backgroundColor: "transparent",
@@ -79,7 +79,7 @@ export const ButtonStylesPresets = StyleSheet.create({
         height: 50,
         paddingVertical: 5,
         paddingHorizontal: 10,
-        borderRadius: 100,
+        borderRadius: 25,
     },
 });
 

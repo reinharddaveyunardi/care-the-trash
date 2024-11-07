@@ -1,12 +1,13 @@
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import {initializeApp} from "firebase/app";
+import {initializeAuth, getReactNativePersistence} from "firebase/auth";
+import ReactNativeAsyncStorage from "@react-native-async-storage/async-storage";
+import {getFirestore} from "firebase/firestore";
+import {getStorage} from "firebase/storage";
 
 const firebaseConfig = {
     apiKey: "AIzaSyB9mXv4RQjlrObn3D8RTgLoed5c_yGXD6U",
     authDomain: "care-the-trash.firebaseapp.com",
-    databaseURL:
-        "https://care-the-trash-default-rtdb.asia-southeast1.firebasedatabase.app",
+    databaseURL: "https://care-the-trash-default-rtdb.asia-southeast1.firebasedatabase.app",
     projectId: "care-the-trash",
     storageBucket: "care-the-trash.appspot.com",
     messagingSenderId: "342432785097",
@@ -16,5 +17,8 @@ const firebaseConfig = {
 
 // Initialize Firebase
 export const FB_APP = initializeApp(firebaseConfig);
-export const FB_AUTH = getAuth(FB_APP);
+export const FB_AUTH = initializeAuth(FB_APP, {
+    persistence: getReactNativePersistence(ReactNativeAsyncStorage),
+});
 export const FS_DB = getFirestore(FB_APP);
+export const FB_STORAGE = getStorage(FB_APP);
