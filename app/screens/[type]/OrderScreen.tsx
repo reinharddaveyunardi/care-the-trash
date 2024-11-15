@@ -1,41 +1,78 @@
-import React, {useState, useEffect, useRef} from "react";
-import {ScrollView, Text, TextInput, View, ActivityIndicator, StyleSheet, StatusBar} from "react-native";
-import MapView, {Region} from "react-native-maps";
-import {SafeAreaView} from "react-native-safe-area-context";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { ScrollView, Text, TextInput, View, ActivityIndicator, StyleSheet } from "react-native";
+import MapView, { Region } from "react-native-maps";
+import { SafeAreaView } from "react-native-safe-area-context";
 import * as Location from "expo-location";
 import tw from "twrnc";
-import {coordsInfo} from "@/interface";
-import {TouchableOpacity} from "react-native-gesture-handler";
-import {color} from "@/app/styling";
-import {doc, increment, setDoc, updateDoc} from "firebase/firestore";
-import {FB_AUTH, FS_DB} from "@/services/FirebaseConfig";
-import BottomSheet, {BottomSheetView} from "@gorhom/bottom-sheet";
-import {FontAwesome6} from "@expo/vector-icons";
-import {ColorPallet} from "@/constants/Colors";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import UserMapView from "@/components/UserMapView";
-import {destination, expObtained, generateRandomUid, getPlaceNameFromCoordinates, pointObtained} from "@/utils";
-import {createOrder} from "@/services/api";
+import { coordsInfo } from "@/interface";
+import { TouchableOpacity } from "react-native-gesture-handler";
+import { color } from "@/app/styling";
+import { doc, setDoc } from "firebase/firestore";
+import { FB_AUTH, FS_DB } from "@/FirebaseConfig";
+import MapViewDirections from "react-native-maps-directions";
+import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
+import { Ionicons } from "@expo/vector-icons";
+import { FontAwesome6 } from "@expo/vector-icons";
 
-const OrderScreen: React.FC<any> = ({route, navigation}) => {
+const GOOGLE_GEOCODING_API_KEY = "AIzaSyA2DdOLtXjToPJjAGMQGAGq6qV9LXwNAR0";
+
+function generateRandomUid(length: number = 16): string {
+    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let result = "";
+    const charactersLength = characters.length;
+    for (let i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+}
+
+const OrderScreen: React.FC<any> = ({ route, navigation }) => {
     const bottomSheetRef = useRef<BottomSheet>(null);
     const [address, setAddress] = useState<string>("");
     const [weight, setWeight] = useState<string>("");
-    const [isSatelite, setIsSatelite] = useState<boolean>(false);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [userLocation, setUserLocation] = useState<coordsInfo | null>(null);
     const [isOrderClicked, setIsOrderClicked] = useState<boolean>(false);
-    const [region, setRegion] = useState<Region | null>(null);
-    const [distance, setDistance] = useState<number>(0);
+    const [distance, setDistance] = useState<number | null>(null);
     const [isCalculatingRoute, setIsCalculatingRoute] = useState<boolean>(false);
 
-    const handleChangeMap = () => setIsSatelite((prev) => !prev);
-    const {wasteCategory} = route.params;
+    const handleSheetChanges = useCallback((index: number) => {
+        console.log("handleSheetChanges", index);
+    }, []);
+
+    const destination = {
+        latitude: -6.365503,
+        longitude: 106.978508,
+    };
+    const { wasteCategory } = route.params;
+    const db = FS_DB;
+
+    const createOrder = async () => {
+        const user = FB_AUTH.currentUser;
+        if (user) {
+            const randomUid = generateRandomUid();
+            const orderData = {
+                address: address,
+                weight: weight,
+                time: Date.now(),
+                category: wasteCategory,
+                distance: distance,
+                uidOrder: randomUid,
+            };
+            try {
+                await setDoc(doc(db, `users/${user.uid}/history/${randomUid}`), orderData, { merge: true });
+                console.log("Order stored in history with ID: ", randomUid);
+            } catch (error) {
+                setError("Failed to store order. Please try again.");
+                console.error("Error writing document: ", error);
+            }
+        }
+    };
 
     const handleOrder = async () => {
         setLoading(true);
-        await createOrder({address, weight, wasteCategory, distance});
+        await createOrder();
         setLoading(false);
         setIsOrderClicked(true);
         setTimeout(() => {
@@ -43,25 +80,37 @@ const OrderScreen: React.FC<any> = ({route, navigation}) => {
                 address,
                 weight,
                 distance,
-                status: true,
                 wasteCategory,
                 destination: destination,
-                pointObtained: pointObtained(weight, distance),
-                expObtained: expObtained(weight, distance),
                 uidOrder: generateRandomUid(),
             });
         }, 3000);
     };
+    const getPlaceNameFromCoordinates = async (latitude: any, longitude: any) => {
+        const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_GEOCODING_API_KEY}`);
+        const data = await response.json();
 
+        if (data.status === "OK" && data.results.length > 0) {
+            const fullAddress = data.results[0].formatted_address;
+            return cleanAddress(fullAddress);
+        } else {
+            throw new Error("Unable to get place name");
+        }
+    };
+
+    const cleanAddress = (fullAddress: string) => {
+        let cleanedAddress = fullAddress.replace(/^[A-Za-z0-9\+]+,\s*/, "");
+        const regex = /(Kabupaten|Kota|Provinsi|Kec\.)\s.+$/;
+        cleanedAddress = cleanedAddress.replace(regex, "").trim();
+        return cleanedAddress;
+    };
     useEffect(() => {
         (async () => {
             try {
-                let {status} = await Location.requestForegroundPermissionsAsync();
-                await AsyncStorage.setItem("locationPerm", "true");
+                let { status } = await Location.requestForegroundPermissionsAsync();
                 if (status !== "granted") {
                     setError("Permission to access location was denied");
-                    console.log(status);
-                    navigation.navigate("Menu");
+                    return;
                 }
 
                 let location = await Location.getCurrentPositionAsync({
@@ -89,90 +138,35 @@ const OrderScreen: React.FC<any> = ({route, navigation}) => {
         setIsCalculatingRoute(false);
     };
 
-    useEffect(() => {
-        if (userLocation) {
-            setRegion({
-                latitude: userLocation.coords.latitude,
-                longitude: userLocation.coords.longitude,
-                latitudeDelta: 0.005,
-                longitudeDelta: 0.005,
-            });
-        }
-    }, [userLocation]);
     const handleError = (error: any) => {
         console.error("Error calculating route: ", error);
         setIsCalculatingRoute(false);
         setError("Failed to calculate route. Please try again.");
     };
-    const mapStyle = [
-        {
-            featureType: "all",
-            elementType: "labels",
-            stylers: [{visibility: "off"}],
-        },
-    ];
+
     function formatDistance(distance: number) {
         return distance < Math.floor(distance) + 0.5 ? Math.floor(distance) : Math.round(distance);
     }
-    if (!loading) {
-        bottomSheetRef.current?.expand();
-    }
+
     return (
         <SafeAreaView style={tw`flex-1 h-full`}>
-            <StatusBar backgroundColor={wasteCategory === "Organic" ? ColorPallet.primary : ColorPallet.blue} barStyle={"light-content"} />
             {!isOrderClicked ? (
                 <View style={styles.container}>
-                    <UserMapView
-                        isSatelite={isSatelite}
-                        waste={wasteCategory}
-                        userLocation={userLocation}
-                        destination={destination}
-                        setIsCalculatingRoute={setIsCalculatingRoute}
-                        handleReady={handleReady}
-                        handleError={handleError}
-                    />
-                    {!loading && (
-                        <View style={{position: "absolute", alignItems: "center", justifyContent: "center", marginTop: 20, marginLeft: 20}}>
-                            <Text style={isSatelite ? {color: ColorPallet.white, fontSize: 16} : {color: ColorPallet.primary, fontSize: 16}}>
-                                <TouchableOpacity onPress={handleChangeMap}>
-                                    <MapView
-                                        customMapStyle={mapStyle}
-                                        zoomControlEnabled={false}
-                                        rotateEnabled={false}
-                                        scrollEnabled={false}
-                                        mapType={isSatelite ? "standard" : "satellite"}
-                                        region={region as Region}
-                                        style={{width: 70, height: 70, borderRadius: 20}}
-                                    />
-                                </TouchableOpacity>
-                            </Text>
-                        </View>
-                    )}
+                    <MapViewUser userLocation={userLocation} destination={destination} setIsCalculatingRoute={setIsCalculatingRoute} handleReady={handleReady} handleError={handleError} />
 
-                    <BottomSheet ref={bottomSheetRef} snapPoints={["10%", "50%"]}>
+                    <BottomSheet ref={bottomSheetRef} onChange={handleSheetChanges} snapPoints={["10%", "50%"]}>
                         <BottomSheetView style={styles.contentContainer}>
                             <ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
-                                <View style={{padding: 24}}>
-                                    <View style={{display: "flex", flexDirection: "column", gap: 16}}>
-                                        <View style={{alignItems: "center", display: "flex", gap: 10, flexDirection: "row"}}>
-                                            <Text style={{fontSize: 14}}>{wasteCategory}</Text>
+                                <View style={{ padding: 24 }}>
+                                    <View style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                                        <View style={{ alignItems: "center", display: "flex", gap: 10, flexDirection: "row" }}>
+                                            <Text style={{ fontSize: 14 }}>{wasteCategory}</Text>
                                             <Text>
-                                                {wasteCategory === "Organic" ? (
-                                                    <FontAwesome6 name="leaf" size={24} color={ColorPallet.primary} />
-                                                ) : (
-                                                    <FontAwesome6 name="bottle-water" size={24} color={ColorPallet.blue} />
-                                                )}
+                                                {wasteCategory === "Organic" ? <FontAwesome6 name="leaf" size={24} color="green" /> : <FontAwesome6 name="bottle-water" size={24} color="blue" />}
                                             </Text>
                                         </View>
-                                        <View style={{display: "flex"}}>
-                                            <View
-                                                style={{
-                                                    width: "100%",
-                                                    height: 4,
-                                                    backgroundColor: wasteCategory === "Organic" ? ColorPallet.primary : ColorPallet.blue,
-                                                    borderRadius: 10,
-                                                }}
-                                            />
+                                        <View style={{ display: "flex" }}>
+                                            <View style={{ width: "90%", height: 1, backgroundColor: "black", borderRadius: 10 }} />
                                         </View>
                                         <View>
                                             <Text>Weight (kg)</Text>
@@ -182,10 +176,9 @@ const OrderScreen: React.FC<any> = ({route, navigation}) => {
                                                 keyboardType="number-pad"
                                                 value={weight.toString()}
                                                 style={{
-                                                    borderRadius: 10,
                                                     height: 40,
                                                     width: 80,
-                                                    borderColor: wasteCategory === "Organic" ? ColorPallet.primary : ColorPallet.blue,
+                                                    borderColor: "gray",
                                                     borderWidth: 1,
                                                     marginTop: 10,
                                                     padding: 10,
@@ -197,12 +190,11 @@ const OrderScreen: React.FC<any> = ({route, navigation}) => {
                                             <Text>From</Text>
                                             <TextInput
                                                 onChangeText={(text) => setAddress(text)}
-                                                value={!address ? "Loading location..." : address}
+                                                value={address}
                                                 style={{
-                                                    borderRadius: 10,
                                                     height: 40,
                                                     width: "100%",
-                                                    borderColor: wasteCategory === "Organic" ? ColorPallet.primary : ColorPallet.blue,
+                                                    borderColor: "gray",
                                                     borderWidth: 1,
                                                     marginTop: 10,
                                                     padding: 10,
@@ -217,11 +209,9 @@ const OrderScreen: React.FC<any> = ({route, navigation}) => {
                                                 editable={false}
                                                 value="Bantar Gebang"
                                                 style={{
-                                                    borderRadius: 10,
                                                     height: 40,
                                                     width: "100%",
-                                                    opacity: 0.4,
-                                                    borderColor: wasteCategory === "Organic" ? ColorPallet.primary : ColorPallet.blue,
+                                                    borderColor: "gray",
                                                     borderWidth: 1,
                                                     marginTop: 10,
                                                     padding: 10,
@@ -229,24 +219,14 @@ const OrderScreen: React.FC<any> = ({route, navigation}) => {
                                                 placeholder="Search or input address"
                                             />
                                         </View>
-                                        {loading ? (
-                                            <ActivityIndicator color={wasteCategory === "Organic" ? ColorPallet.primary : ColorPallet.blue} />
-                                        ) : (
-                                            <TouchableOpacity
-                                                style={{
-                                                    marginTop: 20,
-                                                    backgroundColor: wasteCategory === "Organic" ? ColorPallet.primary : ColorPallet.blue,
-                                                    padding: 10,
-                                                    borderRadius: 10,
-                                                    height: 40,
-                                                }}
-                                                onPress={handleOrder}
-                                                disabled={loading}
-                                            >
-                                                <Text style={{color: "white", textAlign: "center"}}>Order {formatDistance(distance || 0)} km</Text>
-                                            </TouchableOpacity>
-                                        )}
-                                        {error && <Text style={{color: "red", marginTop: 10}}>{error}</Text>}
+                                        <TouchableOpacity
+                                            style={{ marginTop: 20, backgroundColor: loading ? "#ccc" : color.primaryColor, padding: 10, borderRadius: 10, height: 40 }}
+                                            onPress={handleOrder}
+                                            disabled={loading}
+                                        >
+                                            {loading ? <ActivityIndicator color="#fff" /> : <Text style={{ color: "white", textAlign: "center" }}>Order {formatDistance(distance || 0)} km</Text>}
+                                        </TouchableOpacity>
+                                        {error && <Text style={{ color: "red", marginTop: 10 }}>{error}</Text>}
                                     </View>
                                 </View>
                             </ScrollView>
@@ -254,17 +234,58 @@ const OrderScreen: React.FC<any> = ({route, navigation}) => {
                     </BottomSheet>
                 </View>
             ) : (
-                <UserMapView
-                    isSatelite={isSatelite}
-                    waste={wasteCategory}
-                    userLocation={userLocation}
-                    destination={destination}
-                    setIsCalculatingRoute={setIsCalculatingRoute}
-                    handleReady={handleReady}
-                    handleError={handleError}
-                />
+                <MapViewUser userLocation={userLocation} destination={destination} setIsCalculatingRoute={setIsCalculatingRoute} handleReady={handleReady} handleError={handleError} />
             )}
         </SafeAreaView>
+    );
+};
+
+const MapViewUser = ({
+    userLocation,
+    destination,
+    setIsCalculatingRoute,
+    handleReady,
+    handleError,
+}: {
+    userLocation: any;
+    destination: any;
+    setIsCalculatingRoute: any;
+    handleReady: any;
+    handleError: any;
+}) => {
+    return (
+        <>
+            {userLocation ? (
+                <MapView
+                    style={tw`w-full h-full`}
+                    initialRegion={{
+                        latitude: userLocation.coords.latitude,
+                        longitude: userLocation.coords.longitude,
+                        latitudeDelta: 0.0009,
+                        longitudeDelta: 0.0009,
+                    }}
+                    showsUserLocation={true}
+                >
+                    {destination && (
+                        <MapViewDirections
+                            onReady={handleReady}
+                            onError={handleError}
+                            onStart={() => setIsCalculatingRoute(true)}
+                            apikey={"AIzaSyBrGJDA2SfZPp5F4jgqFzMYmEtIo9m2BmM"}
+                            origin={userLocation.coords}
+                            destination={destination}
+                            strokeWidth={5}
+                            strokeColor="#047ae0"
+                        />
+                    )}
+                </MapView>
+            ) : (
+                <View style={tw`flex-1 justify-center items-center`}>
+                    <ActivityIndicator size="large" color={color.primaryColor} />
+                    <Text>Loading Map...</Text>
+                </View>
+            )}
+        </>
     );
 };
 
@@ -276,7 +297,7 @@ const styles = StyleSheet.create({
     contentContainer: {
         flex: 1,
         shadowColor: "#171717",
-        shadowOffset: {width: -2, height: 4},
+        shadowOffset: { width: -2, height: 4 },
         shadowOpacity: 0.2,
         shadowRadius: 3,
         backgroundColor: color.white,
