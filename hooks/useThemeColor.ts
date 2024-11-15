@@ -1,9 +1,9 @@
-import { Colors } from "@/constants/Colors";
-import { FB_AUTH, FS_DB } from "@/FirebaseConfig";
-import { doc, getDoc } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import {Colors} from "@/constants/Colors";
+import {FB_AUTH, FS_DB} from "@/services/FirebaseConfig";
+import {doc, getDoc} from "firebase/firestore";
+import {useEffect, useState} from "react";
 
-export function useThemeColor(props: { light?: string; dark?: string }) {
+export function useThemeColor(props: {light?: string; dark?: string}) {
     const [isDark, setIsDark] = useState(false);
 
     const fetchUserSetting = async () => {

@@ -1,15 +1,15 @@
 import {NavigationContainer} from "@react-navigation/native";
 import GetStartedScreen from "./screens/start/GetStartedScreen";
-import LoginScreen from "./screens/LoginScreen";
-import MenuScreen from "./screens/MenuScreen";
+import LoginScreen from "./screens/auth/LoginScreen";
+import DashboardScreen from "./screens/dashboard/DashboardScreen";
 import {createStackNavigator} from "@react-navigation/stack";
 import {createDrawerNavigator} from "@react-navigation/drawer";
 import {Ionicons} from "@expo/vector-icons";
 import React, {useState} from "react";
 import RegisterScreen from "./screens/RegisterScreen";
-import ProfileScreen from "./screens/ProfileScreen";
+import ProfileScreen from "./screens/profile/ProfileScreen";
 import OrderScreen from "./screens/[type]/OrderScreen";
-import HistoryScreen from "./screens/HistoryScreen";
+import HistoryScreen from "./screens/history/HistoryScreen";
 import ReceiptScreen from "./screens/receipt";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 const Stack = createStackNavigator();
@@ -33,7 +33,7 @@ function InsideLayout() {
 function MenuDrawer() {
     return (
         <Drawer.Navigator
-            initialRouteName="MenuScreen"
+            initialRouteName="DashboardScreen"
             screenOptions={{
                 headerShown: false,
                 drawerActiveTintColor: "#56876D",
@@ -45,23 +45,23 @@ function MenuDrawer() {
             <Drawer.Group>
                 <Drawer.Screen
                     name="Home"
-                    component={MenuScreen}
+                    component={DashboardScreen}
                     options={{
                         headerShown: false,
                         drawerIcon: () => <Ionicons name="home" color={"#56876D"} />,
                     }}
                 />
                 <Drawer.Screen
-                    name="History"
-                    component={HistoryScreen}
+                    name="Profile"
+                    component={ProfileScreen}
                     options={{
                         headerShown: false,
-                        drawerIcon: () => <Ionicons name="time" color={"#56876D"} />,
+                        drawerIcon: () => <Ionicons name="person" color={"#56876D"} />,
                     }}
                 />
                 <Drawer.Screen
-                    name="Profile"
-                    component={ProfileScreen}
+                    name="History"
+                    component={HistoryScreen}
                     options={{
                         headerShown: false,
                         drawerIcon: () => <Ionicons name="time" color={"#56876D"} />,
@@ -81,7 +81,7 @@ export default function Index() {
     getLoggedInfo();
     return (
         <NavigationContainer independent={true}>
-            <Stack.Navigator>
+            <Stack.Navigator initialRouteName={logged === "true" ? "Inside" : "GetStarted"}>
                 {logged === "true" ? (
                     <>
                         <Stack.Screen name="Inside" options={{headerShown: false}} component={InsideLayout} />

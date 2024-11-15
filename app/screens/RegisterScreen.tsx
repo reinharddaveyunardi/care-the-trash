@@ -1,35 +1,27 @@
 import React, {useState} from "react";
-import {View, Image, TextInput, Text, TouchableOpacity, StatusBar, ActivityIndicator, KeyboardAvoidingView, ImageBackground} from "react-native";
+import {View, TextInput, Text, TouchableOpacity, StatusBar, ActivityIndicator, KeyboardAvoidingView, ImageBackground} from "react-native";
 import {SafeAreaView} from "react-native-safe-area-context";
-import {FB_AUTH, FS_DB} from "@/FirebaseConfig";
-import {createUserWithEmailAndPassword, updateProfile} from "firebase/auth";
-import {doc, setDoc} from "firebase/firestore";
 import {ColorPallet} from "@/constants/Colors";
+import {register} from "@/services/api";
+import CustomAlert from "@/components/CustomAlert";
 
 const RegisterScreen = ({navigation}: any) => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [name, setName] = useState("");
+    const [messageStatus, setMessageStatus] = useState<any>("");
+    const [showMessage, setShowMessage] = useState(false);
     const [loading, setLoading] = useState(false);
-    const auth = FB_AUTH;
-    const db = FS_DB;
 
     const signUp = async () => {
         setLoading(true);
         try {
-            const response = await createUserWithEmailAndPassword(auth, email, password);
-
-            await updateProfile(response.user, {displayName: name});
-
-            await setDoc(doc(db, "users", response.user.uid), {
-                name: name,
-                email: email,
-                uid: response.user.uid,
-            });
-
+            setLoading(true);
+            await register({email, password, name});
             navigation.replace("Login");
         } catch (error: any) {
-            console.log(error);
+            setMessageStatus(error.message);
+            setShowMessage(true);
         } finally {
             setLoading(false);
         }
@@ -37,6 +29,7 @@ const RegisterScreen = ({navigation}: any) => {
     return (
         <SafeAreaView>
             <StatusBar backgroundColor={ColorPallet.primary} />
+            <CustomAlert message={messageStatus} visible={showMessage} onClose={() => setShowMessage(false)} />
             <KeyboardAvoidingView behavior="padding">
                 <ImageBackground source={require("@/assets/images/register.png")} style={{width: "100%", height: "100%"}} blurRadius={1.5}>
                     <View style={{height: "100%", justifyContent: "center"}}>
@@ -116,9 +109,8 @@ const RegisterScreen = ({navigation}: any) => {
                                         autoComplete="off"
                                     />
                                 </View>
-                                {loading ? (
-                                    <ActivityIndicator size={"large"} color={"#18341A"} />
-                                ) : (
+                                {loading ? // <ActivityIndicator size={"large"} color={"#18341A"} />
+                                null : (
                                     <>
                                         <TouchableOpacity
                                             activeOpacity={0.8}

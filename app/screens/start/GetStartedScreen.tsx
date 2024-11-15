@@ -41,7 +41,7 @@ export default function GetStartedScreen({navigation}: any) {
                         title: <Text style={{fontWeight: "bold", fontSize: 32, color: ColorPallet.primary}}>Ready?</Text>,
                         subtitle: (
                             <View style={{flexDirection: "row", marginTop: "20%", gap: 5}}>
-                                <Text>Still in doubt?</Text>
+                                <Text>More information? </Text>
                                 <Text onPress={() => Linking.openURL("https://carethetrash.my.id")} style={{borderBottomWidth: 1}}>
                                     Care The Trash
                                 </Text>

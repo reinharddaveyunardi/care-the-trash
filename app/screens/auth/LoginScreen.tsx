@@ -1,77 +1,33 @@
 import React, {useEffect, useState} from "react";
 import {View, TextInput, Text, TouchableOpacity, StatusBar, ActivityIndicator, KeyboardAvoidingView, ImageBackground, Switch} from "react-native";
 import {SafeAreaView} from "react-native-safe-area-context";
-import {FB_AUTH} from "@/FirebaseConfig";
-import {signInWithEmailAndPassword} from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {ColorPallet} from "@/constants/Colors";
 import {Ionicons} from "@expo/vector-icons";
-
-type UserCred = {
-    email: string;
-    password: string;
-};
-const storeUserCred = async (userCred: UserCred): Promise<void> => {
-    try {
-        await AsyncStorage.setItem("userEmail", userCred.email);
-        await AsyncStorage.setItem("userPassword", userCred.password);
-        console.log("User credentials stored successfully");
-    } catch (error) {
-        console.log("Failed to store user credentials", error);
-    }
-};
-const getFirebaseErrorMessage = (error: any) => {
-    let errMess = null;
-
-    switch (error.code) {
-        case "auth/user-not-found":
-            errMess = "User not found";
-            break;
-        case "auth/wrong-password":
-            errMess = "Wrong password";
-            break;
-        case "auth/email-already-in-use":
-            errMess = "Email already in use";
-            break;
-        case "auth/invalid-email":
-            errMess = "Invalid email";
-            break;
-        case "auth/invalid-password":
-            errMess = "Invalid password";
-            break;
-        default:
-            errMess = `Something went wrong: ${error.message}`;
-    }
-
-    return errMess;
-};
+import CustomAlert from "@/components/CustomAlert";
+import {login} from "@/services/api";
 
 const LoginScreen = ({navigation}: any) => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [messageStatus, setMessageStatus] = useState<any>("");
+    const [showMessage, setShowMessage] = useState(false);
     const [isRemembered, setIsRemembered] = useState(false);
     const rememberToggle = () => setIsRemembered((previous) => !previous);
-    const auth = FB_AUTH;
-
     const signIn = async () => {
+        setShowMessage(false);
         setLoading(true);
-        setError(null);
-
         try {
-            await signInWithEmailAndPassword(auth, email, password);
-            if (isRemembered) {
-                await AsyncStorage.setItem("keepLogin", "true");
-                await AsyncStorage.setItem("userData", JSON.stringify({email, password}));
-                console.log("Stored your data");
-            }
-            navigation.replace("Inside");
+            await login({email, password, isRemembered});
+            navigation.reset({
+                index: 0,
+                routes: [{name: "Inside"}],
+            });
         } catch (error: any) {
-            const errorMessage = getFirebaseErrorMessage(error);
-            setError(errorMessage);
-            console.log(errorMessage);
+            setMessageStatus(error.message);
+            setShowMessage(true);
         } finally {
             setLoading(false);
         }
@@ -98,6 +54,7 @@ const LoginScreen = ({navigation}: any) => {
     return (
         <SafeAreaView>
             <StatusBar backgroundColor="#18341A" />
+            <CustomAlert message={messageStatus} visible={showMessage} onClose={() => setShowMessage(false)} />
             <KeyboardAvoidingView behavior="padding">
                 <ImageBackground source={require("@/assets/images/bg.png")} style={{width: "100%", height: "100%"}} blurRadius={2.5}>
                     <View style={{height: "100%", justifyContent: "center"}}>
@@ -211,9 +168,8 @@ const LoginScreen = ({navigation}: any) => {
                                         <Text style={{color: ColorPallet.white}}>Remember Me</Text>
                                     </View>
                                     <View style={{width: "100%", alignItems: "center", gap: 10}}>
-                                        {loading ? (
-                                            <ActivityIndicator size={"large"} color={ColorPallet.white} />
-                                        ) : (
+                                        {loading ? // <ActivityIndicator size={"large"} color={ColorPallet.white} />
+                                        null : (
                                             <>
                                                 <TouchableOpacity
                                                     activeOpacity={0.8}

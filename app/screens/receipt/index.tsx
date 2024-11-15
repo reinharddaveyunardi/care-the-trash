@@ -4,7 +4,7 @@ import tw from "twrnc";
 import Ionicons from "@expo/vector-icons/build/Ionicons";
 import {format} from "date-fns";
 import {collection, onSnapshot} from "firebase/firestore";
-import {FB_AUTH, FS_DB} from "@/FirebaseConfig";
+import {FB_AUTH, FS_DB} from "@/services/FirebaseConfig";
 import {ColorPallet} from "@/constants/Colors";
 
 function formatPrice(number: number) {
@@ -55,7 +55,7 @@ const ReceiptScreen: React.FC<any> = ({route, navigation}) => {
     const [timeFilter, setTimeFilter] = useState<Date | null>(null);
     const [history, setHistory] = useState<any[]>([]);
     const [filteredHistory, setFilteredHistory] = useState<any[]>([]);
-    const {address, weight, distance, wasteCategory, time, pointObtained, expObtained} = route.params;
+    const {address, weight, distance, wasteCategory, time, pointObtained, expObtained, status} = route.params;
     const formattedOrderTime = time ? format(new Date(time), "MM/dd/yyyy HH:mm") : "N/A";
     const db = FS_DB;
     const fetchHistory = () => {
@@ -115,8 +115,8 @@ const ReceiptScreen: React.FC<any> = ({route, navigation}) => {
                 </View>
                 <View style={{padding: 20, display: "flex", flexDirection: "column", gap: 10}}>
                     <Text>Cost: {formatPrice(weight * 400 * distance)}</Text>
-                    <Text>Point: {pointObtained}</Text>
-                    <Text>EXP: {expObtained}</Text>
+                    <Text>Point: {Math.round(pointObtained)}</Text>
+                    <Text>EXP: {Math.round(expObtained)}</Text>
                 </View>
                 <View>{getCatPic(wasteCategory)}</View>
             </View>

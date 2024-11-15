@@ -4,6 +4,7 @@ import ReactNativeAsyncStorage from "@react-native-async-storage/async-storage";
 import {getFirestore} from "firebase/firestore";
 import {getStorage} from "firebase/storage";
 
+// Konfigurasi Firebase (API)
 const firebaseConfig = {
     apiKey: "AIzaSyB9mXv4RQjlrObn3D8RTgLoed5c_yGXD6U",
     authDomain: "care-the-trash.firebaseapp.com",
@@ -15,7 +16,7 @@ const firebaseConfig = {
     measurementId: "G-N8V4D2P729",
 };
 
-// Initialize Firebase
+// inisialisasi / initialize firebase
 export const FB_APP = initializeApp(firebaseConfig);
 export const FB_AUTH = initializeAuth(FB_APP, {
     persistence: getReactNativePersistence(ReactNativeAsyncStorage),
