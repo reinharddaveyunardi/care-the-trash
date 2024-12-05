@@ -23,7 +23,7 @@ export const calculateDistance = (origin: any, destination: any) => {
 };
 export const getPlaceNameFromCoordinates = async (latitude: number, longitude: number) => {
     const response = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${process.env.EXPO_PUBLIC_GEOCODING_API_KEY}`
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${process.env.EXPO_PUBLIC_MAPS_API_KEY}`
     );
     const data = await response.json();
 

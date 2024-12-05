@@ -5,7 +5,6 @@ import {Ionicons} from "@expo/vector-icons";
 import {ColorPallet} from "@/constants/Colors";
 import {getHistory} from "@/services/api";
 import {format} from "date-fns";
-import {Skeleton} from "moti/skeleton";
 import {refreshHandler} from "@/services/handler";
 
 const HistoryScreen = ({navigation}: any) => {
@@ -102,39 +101,29 @@ const HistoryScreen = ({navigation}: any) => {
                                             backgroundColor: ColorPallet.white,
                                         }}
                                     >
-                                        <Skeleton show={loading} width={80} height={80} colorMode="light">
-                                            <View style={{height: 80, justifyContent: "center", alignItems: "center"}}>
-                                                {filteredHistory ? <View>{getCatPic(item.category)}</View> : null}
-                                            </View>
-                                        </Skeleton>
+                                        <View style={{height: 80, justifyContent: "center", alignItems: "center"}}>
+                                            {filteredHistory ? <View>{getCatPic(item.category)}</View> : null}
+                                        </View>
                                         <View style={{height: 80, width: 1, backgroundColor: ColorPallet.primary}} />
                                         <View style={{flexDirection: "row", height: 80}}>
                                             <View style={{justifyContent: "space-between"}}>
                                                 <View style={{gap: 10}}>
-                                                    <Skeleton show={loading} width={150} height={20} colorMode="light">
-                                                        <Text style={{fontWeight: "bold"}}>
-                                                            {item.address.length > 20 ? item.address.substring(0, 23) + "..." : item.address}
-                                                        </Text>
-                                                    </Skeleton>
+                                                    <Text style={{fontWeight: "bold"}}>
+                                                        {item.address.length > 20 ? item.address.substring(0, 23) + "..." : item.address}
+                                                    </Text>
                                                     <View>
-                                                        <Skeleton show={loading} width={100} height={20} colorMode="light">
-                                                            <Text>{format(new Date(item.time), "dd MMM - HH:mm")}</Text>
-                                                        </Skeleton>
+                                                        <Text>{format(new Date(item.time), "dd MMM - HH:mm")}</Text>
                                                     </View>
                                                 </View>
                                                 <View style={{flexDirection: "row", justifyContent: "space-between", gap: 5}}>
-                                                    <Skeleton show={loading} width={100} height={20} colorMode="light">
-                                                        <View style={{backgroundColor: ColorPallet.primary, paddingHorizontal: 5, borderRadius: 5}}>
-                                                            {!loading ? (
-                                                                <Text style={{color: ColorPallet.white, textAlign: "center"}}>
-                                                                    {item.status ? "Delivered" : "Pending"}
-                                                                </Text>
-                                                            ) : null}
-                                                        </View>
-                                                    </Skeleton>
-                                                    <Skeleton show={loading} width={80} height={20} colorMode="light">
-                                                        <Text>{formatPrice(item.weight * 400 * item.distance)}</Text>
-                                                    </Skeleton>
+                                                    <View style={{backgroundColor: ColorPallet.primary, paddingHorizontal: 5, borderRadius: 5}}>
+                                                        {!loading ? (
+                                                            <Text style={{color: ColorPallet.white, textAlign: "center"}}>
+                                                                {item.status ? "Delivered" : "Pending"}
+                                                            </Text>
+                                                        ) : null}
+                                                    </View>
+                                                    <Text>{formatPrice(item.weight * 400 * item.distance)}</Text>
                                                 </View>
                                             </View>
                                         </View>

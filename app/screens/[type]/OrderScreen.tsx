@@ -1,32 +1,23 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { ScrollView, Text, TextInput, View, ActivityIndicator, StyleSheet } from "react-native";
-import MapView, { Region } from "react-native-maps";
-import { SafeAreaView } from "react-native-safe-area-context";
+import React, {useState, useEffect, useRef, useCallback} from "react";
+import {ScrollView, Text, TextInput, View, ActivityIndicator, StyleSheet, StatusBar} from "react-native";
+import MapView, {Region} from "react-native-maps";
+import {SafeAreaView} from "react-native-safe-area-context";
 import * as Location from "expo-location";
 import tw from "twrnc";
-import { coordsInfo } from "@/interface";
-import { TouchableOpacity } from "react-native-gesture-handler";
-import { color } from "@/app/styling";
-import { doc, setDoc } from "firebase/firestore";
-import { FB_AUTH, FS_DB } from "@/FirebaseConfig";
+import {coordsInfo} from "@/interface";
+import {TouchableOpacity} from "react-native-gesture-handler";
+import {doc, setDoc} from "firebase/firestore";
 import MapViewDirections from "react-native-maps-directions";
-import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
-import { Ionicons } from "@expo/vector-icons";
-import { FontAwesome6 } from "@expo/vector-icons";
-
-const GOOGLE_GEOCODING_API_KEY = "AIzaSyA2DdOLtXjToPJjAGMQGAGq6qV9LXwNAR0";
-
-function generateRandomUid(length: number = 16): string {
-    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    let result = "";
-    const charactersLength = characters.length;
-    for (let i = 0; i < length; i++) {
-        result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    return result;
-}
-
-const OrderScreen: React.FC<any> = ({ route, navigation }) => {
+import BottomSheet, {BottomSheetScrollView, BottomSheetView} from "@gorhom/bottom-sheet";
+import {Ionicons} from "@expo/vector-icons";
+import {FontAwesome6} from "@expo/vector-icons";
+import {FB_AUTH, FS_DB} from "@/services/FirebaseConfig";
+import {ColorPallet} from "@/constants/Colors";
+import UserMapView from "@/components/UserMapView";
+import {createOrder} from "@/services/api";
+import {cleanAddress, destination, expObtained, getPlaceNameFromCoordinates, pointObtained} from "@/utils";
+import {getItemFromAsyncStorage, saveItemToAsyncStorage} from "@/services/AsyncStorage";
+const OrderScreen: React.FC<any> = ({route, navigation}) => {
     const bottomSheetRef = useRef<BottomSheet>(null);
     const [address, setAddress] = useState<string>("");
     const [weight, setWeight] = useState<string>("");
@@ -34,85 +25,36 @@ const OrderScreen: React.FC<any> = ({ route, navigation }) => {
     const [error, setError] = useState<string | null>(null);
     const [userLocation, setUserLocation] = useState<coordsInfo | null>(null);
     const [isOrderClicked, setIsOrderClicked] = useState<boolean>(false);
-    const [distance, setDistance] = useState<number | null>(null);
+    const [distance, setDistance] = useState<number>(0);
     const [isCalculatingRoute, setIsCalculatingRoute] = useState<boolean>(false);
+    const {wasteCategory} = route.params;
 
-    const handleSheetChanges = useCallback((index: number) => {
-        console.log("handleSheetChanges", index);
-    }, []);
-
-    const destination = {
-        latitude: -6.365503,
-        longitude: 106.978508,
-    };
-    const { wasteCategory } = route.params;
-    const db = FS_DB;
-
-    const createOrder = async () => {
-        const user = FB_AUTH.currentUser;
-        if (user) {
-            const randomUid = generateRandomUid();
-            const orderData = {
+    const handleOrder = async () => {
+        setLoading(true);
+        await createOrder({address: address, weight: weight, wasteCategory: wasteCategory, distance: distance});
+        setLoading(false);
+        setIsOrderClicked(true);
+        setTimeout(() => {
+            navigation.navigate("Receipt", {
                 address: address,
                 weight: weight,
                 time: Date.now(),
                 category: wasteCategory,
                 distance: distance,
-                uidOrder: randomUid,
-            };
-            try {
-                await setDoc(doc(db, `users/${user.uid}/history/${randomUid}`), orderData, { merge: true });
-                console.log("Order stored in history with ID: ", randomUid);
-            } catch (error) {
-                setError("Failed to store order. Please try again.");
-                console.error("Error writing document: ", error);
-            }
-        }
-    };
-
-    const handleOrder = async () => {
-        setLoading(true);
-        await createOrder();
-        setLoading(false);
-        setIsOrderClicked(true);
-        setTimeout(() => {
-            navigation.navigate("Receipt", {
-                address,
-                weight,
-                distance,
-                wasteCategory,
-                destination: destination,
-                uidOrder: generateRandomUid(),
+                pointObtained: pointObtained(weight, distance),
+                expObtained: expObtained(weight, distance),
             });
         }, 3000);
-    };
-    const getPlaceNameFromCoordinates = async (latitude: any, longitude: any) => {
-        const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_GEOCODING_API_KEY}`);
-        const data = await response.json();
-
-        if (data.status === "OK" && data.results.length > 0) {
-            const fullAddress = data.results[0].formatted_address;
-            return cleanAddress(fullAddress);
-        } else {
-            throw new Error("Unable to get place name");
-        }
-    };
-
-    const cleanAddress = (fullAddress: string) => {
-        let cleanedAddress = fullAddress.replace(/^[A-Za-z0-9\+]+,\s*/, "");
-        const regex = /(Kabupaten|Kota|Provinsi|Kec\.)\s.+$/;
-        cleanedAddress = cleanedAddress.replace(regex, "").trim();
-        return cleanedAddress;
     };
     useEffect(() => {
         (async () => {
             try {
-                let { status } = await Location.requestForegroundPermissionsAsync();
+                let {status} = await Location.requestForegroundPermissionsAsync();
                 if (status !== "granted") {
                     setError("Permission to access location was denied");
+                    navigation.goBack();
                     return;
                 }
-
                 let location = await Location.getCurrentPositionAsync({
                     accuracy: Location.Accuracy.High,
                 });
@@ -131,7 +73,6 @@ const OrderScreen: React.FC<any> = ({ route, navigation }) => {
             }
         })();
     }, []);
-
     const handleReady = (result: any) => {
         const distanceInKm = result.distance;
         setDistance(distanceInKm);
@@ -150,91 +91,148 @@ const OrderScreen: React.FC<any> = ({ route, navigation }) => {
 
     return (
         <SafeAreaView style={tw`flex-1 h-full`}>
+            <StatusBar barStyle="light-content" backgroundColor={wasteCategory === "Organic" ? ColorPallet.primary : ColorPallet.blue} />
             {!isOrderClicked ? (
                 <View style={styles.container}>
-                    <MapViewUser userLocation={userLocation} destination={destination} setIsCalculatingRoute={setIsCalculatingRoute} handleReady={handleReady} handleError={handleError} />
+                    <UserMapView
+                        navigation={navigation}
+                        setIsCalculatingRoute={setIsCalculatingRoute}
+                        handleReady={handleReady}
+                        handleError={handleError}
+                        waste={wasteCategory}
+                    />
+                    <View style={{position: "absolute", top: "2%", left: "2.5%", justifyContent: "center", alignItems: "center", elevation: 5, zIndex: 2}}>
+                        <TouchableOpacity
+                            onPress={() => navigation.goBack()}
+                            style={{display: "flex", alignItems: "center", backgroundColor: "white", borderRadius: 50, padding: 10}}
+                        >
+                            <Ionicons name="chevron-back" size={24} color="black" />
+                        </TouchableOpacity>
+                    </View>
 
-                    <BottomSheet ref={bottomSheetRef} onChange={handleSheetChanges} snapPoints={["10%", "50%"]}>
+                    <BottomSheet ref={bottomSheetRef} snapPoints={["10%", "55%"]} style={{flex: 1}}>
                         <BottomSheetView style={styles.contentContainer}>
-                            <ScrollView showsVerticalScrollIndicator={false} showsHorizontalScrollIndicator={false}>
-                                <View style={{ padding: 24 }}>
-                                    <View style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                                        <View style={{ alignItems: "center", display: "flex", gap: 10, flexDirection: "row" }}>
-                                            <Text style={{ fontSize: 14 }}>{wasteCategory}</Text>
-                                            <Text>
-                                                {wasteCategory === "Organic" ? <FontAwesome6 name="leaf" size={24} color="green" /> : <FontAwesome6 name="bottle-water" size={24} color="blue" />}
-                                            </Text>
-                                        </View>
-                                        <View style={{ display: "flex" }}>
-                                            <View style={{ width: "90%", height: 1, backgroundColor: "black", borderRadius: 10 }} />
-                                        </View>
-                                        <View>
-                                            <Text>Weight (kg)</Text>
-                                            <TextInput
-                                                onChangeText={(weight) => setWeight(weight)}
-                                                placeholder="0"
-                                                keyboardType="number-pad"
-                                                value={weight.toString()}
-                                                style={{
-                                                    height: 40,
-                                                    width: 80,
-                                                    borderColor: "gray",
-                                                    borderWidth: 1,
-                                                    marginTop: 10,
-                                                    padding: 10,
-                                                }}
-                                            />
-                                        </View>
+                            <View style={{padding: 24}}>
+                                <View style={{display: "flex", flexDirection: "column", gap: 16}}>
+                                    <View style={{alignItems: "center", display: "flex", gap: 10, flexDirection: "row"}}>
+                                        <Text style={{fontSize: 14}}>{wasteCategory}</Text>
+                                        <Text>
+                                            {wasteCategory === "Organic" ? (
+                                                <FontAwesome6 name="leaf" size={24} color="green" />
+                                            ) : (
+                                                <FontAwesome6 name="bottle-water" size={24} color="blue" />
+                                            )}
+                                        </Text>
+                                    </View>
+                                    <View style={{display: "flex"}}>
+                                        <View
+                                            style={{
+                                                width: "100%",
+                                                height: 3,
+                                                backgroundColor: wasteCategory === "Organic" ? "green" : "blue",
+                                                borderRadius: 10,
+                                            }}
+                                        />
+                                    </View>
+                                    <View>
+                                        <Text>Weight (kg)</Text>
+                                        <TextInput
+                                            onChangeText={(weight) => setWeight(weight)}
+                                            placeholder="0"
+                                            keyboardType="number-pad"
+                                            value={weight.toString()}
+                                            style={{
+                                                height: 40,
+                                                width: 80,
+                                                borderColor: wasteCategory === "Organic" ? "green" : "blue",
+                                                borderWidth: 1,
+                                                borderRadius: 10,
+                                                marginTop: 10,
+                                                padding: 10,
+                                            }}
+                                        />
+                                    </View>
 
-                                        <View>
-                                            <Text>From</Text>
-                                            <TextInput
-                                                onChangeText={(text) => setAddress(text)}
-                                                value={address}
-                                                style={{
-                                                    height: 40,
-                                                    width: "100%",
-                                                    borderColor: "gray",
-                                                    borderWidth: 1,
-                                                    marginTop: 10,
-                                                    padding: 10,
-                                                }}
-                                                placeholder="Search or input address"
-                                            />
-                                        </View>
-                                        <View>
-                                            <Text>To</Text>
-                                            <TextInput
-                                                aria-disabled
-                                                editable={false}
-                                                value="Bantar Gebang"
-                                                style={{
-                                                    height: 40,
-                                                    width: "100%",
-                                                    borderColor: "gray",
-                                                    borderWidth: 1,
-                                                    marginTop: 10,
-                                                    padding: 10,
-                                                }}
-                                                placeholder="Search or input address"
-                                            />
-                                        </View>
+                                    <View>
+                                        <Text>From</Text>
+                                        <TextInput
+                                            onChangeText={(text) => setAddress(text)}
+                                            value={address}
+                                            style={{
+                                                height: 40,
+                                                width: "100%",
+                                                borderColor: wasteCategory === "Organic" ? "green" : "blue",
+                                                borderWidth: 1,
+                                                borderRadius: 10,
+                                                marginTop: 10,
+                                                padding: 10,
+                                            }}
+                                            placeholder="Search or input address"
+                                        />
+                                    </View>
+                                    <View>
+                                        <Text>To</Text>
+                                        <TextInput
+                                            aria-disabled
+                                            editable={false}
+                                            value="Bantar Gebang"
+                                            style={{
+                                                height: 40,
+                                                width: "100%",
+                                                borderColor: wasteCategory === "Organic" ? "green" : "blue",
+                                                opacity: 0.5,
+                                                borderWidth: 1,
+                                                marginTop: 10,
+                                                padding: 10,
+                                                borderRadius: 10,
+                                            }}
+                                        />
+                                    </View>
+                                    {loading ? (
+                                        <ActivityIndicator size="large" color={ColorPallet.primary} />
+                                    ) : parseInt(weight) > 0 ? (
                                         <TouchableOpacity
-                                            style={{ marginTop: 20, backgroundColor: loading ? "#ccc" : color.primaryColor, padding: 10, borderRadius: 10, height: 40 }}
+                                            style={{
+                                                marginTop: 20,
+                                                backgroundColor: wasteCategory === "Organic" ? ColorPallet.primary : ColorPallet.primary,
+                                                padding: 10,
+                                                borderRadius: 10,
+                                                height: 40,
+                                            }}
                                             onPress={handleOrder}
                                             disabled={loading}
                                         >
-                                            {loading ? <ActivityIndicator color="#fff" /> : <Text style={{ color: "white", textAlign: "center" }}>Order {formatDistance(distance || 0)} km</Text>}
+                                            <Text style={{color: "white", textAlign: "center"}}>Order</Text>
                                         </TouchableOpacity>
-                                        {error && <Text style={{ color: "red", marginTop: 10 }}>{error}</Text>}
-                                    </View>
+                                    ) : (
+                                        <TouchableOpacity
+                                            style={{
+                                                marginTop: 20,
+                                                backgroundColor: loading ? "#ccc" : ColorPallet.warning,
+                                                padding: 10,
+                                                borderRadius: 10,
+                                                height: 40,
+                                            }}
+                                            onPress={handleOrder}
+                                            disabled={true}
+                                        >
+                                            <Text style={{color: "white", textAlign: "center"}}>Please enter weight</Text>
+                                        </TouchableOpacity>
+                                    )}
+                                    {error && <Text style={{color: "red", marginTop: 10}}>{error}</Text>}
                                 </View>
-                            </ScrollView>
+                            </View>
                         </BottomSheetView>
                     </BottomSheet>
                 </View>
             ) : (
-                <MapViewUser userLocation={userLocation} destination={destination} setIsCalculatingRoute={setIsCalculatingRoute} handleReady={handleReady} handleError={handleError} />
+                <UserMapView
+                    navigation={navigation}
+                    setIsCalculatingRoute={setIsCalculatingRoute}
+                    handleReady={handleReady}
+                    handleError={handleError}
+                    waste={wasteCategory}
+                />
             )}
         </SafeAreaView>
     );
@@ -281,7 +279,7 @@ const MapViewUser = ({
                 </MapView>
             ) : (
                 <View style={tw`flex-1 justify-center items-center`}>
-                    <ActivityIndicator size="large" color={color.primaryColor} />
+                    <ActivityIndicator size="large" color={ColorPallet.primary} />
                     <Text>Loading Map...</Text>
                 </View>
             )}
@@ -297,10 +295,10 @@ const styles = StyleSheet.create({
     contentContainer: {
         flex: 1,
         shadowColor: "#171717",
-        shadowOffset: { width: -2, height: 4 },
+        shadowOffset: {width: -2, height: 4},
         shadowOpacity: 0.2,
         shadowRadius: 3,
-        backgroundColor: color.white,
+        backgroundColor: ColorPallet.white,
     },
 });
 export default OrderScreen;

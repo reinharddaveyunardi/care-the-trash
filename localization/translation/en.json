@@ -1,0 +1,49 @@
+{
+    "language": "English",
+    "getStarted": {
+        "one": "Set Waste!, Repeat!, Healthy Earth!",
+        "two": "Set your daily waste!",
+        "three": "Your trash is sent to be recycled!",
+        "four": "Make your planet healthy!",
+        "five": "More information?"
+    },
+    "loginNregister": {
+        "email": "Email",
+        "enterEmail": "Enter email",
+        "enterPassword": "Enter password",
+        "enterFullname": "Enter fullname",
+        "password": "Password",
+        "reset": "Reset",
+        "forgotPassword": "Forgot password?",
+        "login": "Login",
+        "register": "Register",
+        "rememberMe": "Remember me",
+        "fullname": "Fullname",
+        "alreadyHaveAccount": "Already have an account?",
+        "dontHaveAccount": "Don't have an account?"
+    },
+    "Menu": {
+        "point": "Point",
+        "level": "Level",
+        "redeem": "Redeem",
+        "organic": "Organic",
+        "inorganic": "Inorganic",
+        "quest": "Quest",
+        "addToCart": "Add to Cart",
+        "cartEmpty": "Your cart is empty",
+        "notEnoughPoint": "You don't have enough points"
+    },
+    "Profile": {
+        "general": "General Information",
+        "qComplete": "Completed Quest",
+        "totalWaste": "Total Waste",
+        "accountNSetting": "Account & Setting",
+        "accountSetting": "Account Setting",
+        "cLanguage": "Change Language",
+        "accessibility": "Accessibility",
+        "logout": "Logout",
+        "verified": "Verified",
+        "notVerified": "Not Verified",
+        "yourEmailNotVerified": "Your email is not verified"
+    }
+}

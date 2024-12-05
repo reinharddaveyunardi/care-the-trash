@@ -16,13 +16,11 @@ export interface registerProps {
 
 // Map props
 export interface MapProps {
-    isSatelite: boolean;
-    userLocation: any;
-    destination: any;
     setIsCalculatingRoute: any;
     handleReady: any;
     handleError: any;
     waste: string;
+    navigation: any;
 }
 
 // Order props
@@ -31,6 +29,20 @@ export interface OrderProps {
     weight: string;
     distance: number;
     wasteCategory: string;
+}
+
+// Quest Props
+export interface QuestProps {
+    key: number;
+    title: string;
+    desc: string;
+    progress: number;
+    reward: [];
+    type: string;
+    point: number;
+    exp: number;
+    until: any;
+    currentProgress: number;
 }
 export interface NavgiationsProps {
     navigation: NavigationProp<any, any>;

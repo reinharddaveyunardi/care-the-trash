@@ -6,8 +6,10 @@ import {ColorPallet} from "@/constants/Colors";
 import {Ionicons} from "@expo/vector-icons";
 import CustomAlert from "@/components/CustomAlert";
 import {login} from "@/services/api";
+import {useTranslation} from "react-i18next";
 
 const LoginScreen = ({navigation}: any) => {
+    const {t} = useTranslation();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
@@ -21,10 +23,7 @@ const LoginScreen = ({navigation}: any) => {
         setLoading(true);
         try {
             await login({email, password, isRemembered});
-            navigation.reset({
-                index: 0,
-                routes: [{name: "Inside"}],
-            });
+            navigation.replace("Inside");
         } catch (error: any) {
             setMessageStatus(error.message);
             setShowMessage(true);
@@ -60,7 +59,7 @@ const LoginScreen = ({navigation}: any) => {
                     <View style={{height: "100%", justifyContent: "center"}}>
                         <View style={{justifyContent: "space-between", alignItems: "center", height: "100%", gap: 16}}>
                             <View style={{flex: 1, alignItems: "center", justifyContent: "center"}}>
-                                <Text style={{fontSize: 32, fontWeight: "bold", color: ColorPallet.white}}>Login</Text>
+                                <Text style={{fontSize: 32, fontWeight: "bold", color: ColorPallet.white}}>{t("loginNregister.login")}</Text>
                             </View>
                             <View
                                 style={{
@@ -90,7 +89,7 @@ const LoginScreen = ({navigation}: any) => {
                                                     color: ColorPallet.white,
                                                     backgroundColor: "rgba(255, 255, 255, 0.3)",
                                                 }}
-                                                placeholder="Enter your email"
+                                                placeholder={t("loginNregister.enterEmail")}
                                                 autoComplete="off"
                                             />
                                         </View>
@@ -118,7 +117,7 @@ const LoginScreen = ({navigation}: any) => {
                                                         color: ColorPallet.white,
                                                         backgroundColor: "rgba(255, 255, 255, 0.3)",
                                                     }}
-                                                    placeholder="Enter your password"
+                                                    placeholder={t("loginNregister.enterPassword")}
                                                     autoComplete="off"
                                                 />
                                             </View>
@@ -147,7 +146,7 @@ const LoginScreen = ({navigation}: any) => {
                                                         backgroundColor: "rgba(255, 255, 255, 0.3)",
                                                     }}
                                                     secureTextEntry
-                                                    placeholder="Enter your password"
+                                                    placeholder={t("loginNregister.enterPassword")}
                                                     autoComplete="off"
                                                 />
                                             </View>
@@ -157,19 +156,20 @@ const LoginScreen = ({navigation}: any) => {
                                 <View style={{width: "100%", justifyContent: "center", alignItems: "center", gap: 3}}>
                                     <View style={{width: "85%"}}>
                                         <View style={{flexDirection: "row", gap: 2, width: "100%"}}>
-                                            <Text style={{color: ColorPallet.white}}>Forgot password?</Text>
+                                            <Text style={{color: ColorPallet.white}}>{t("loginNregister.forgotPassword")}</Text>
                                             <TouchableOpacity activeOpacity={1}>
-                                                <Text style={{color: ColorPallet.white}}>Reset now!</Text>
+                                                <Text style={{color: ColorPallet.white}}>{t("loginNregister.reset")}</Text>
                                             </TouchableOpacity>
                                         </View>
                                     </View>
                                     <View style={{width: "85%", flexDirection: "row", gap: 10, alignItems: "center"}}>
                                         <Switch onValueChange={rememberToggle} value={isRemembered} />
-                                        <Text style={{color: ColorPallet.white}}>Remember Me</Text>
+                                        <Text style={{color: ColorPallet.white}}>{t("loginNregister.rememberMe")}</Text>
                                     </View>
                                     <View style={{width: "100%", alignItems: "center", gap: 10}}>
-                                        {loading ? // <ActivityIndicator size={"large"} color={ColorPallet.white} />
-                                        null : (
+                                        {loading ? (
+                                            <ActivityIndicator size={"large"} color={ColorPallet.white} />
+                                        ) : (
                                             <>
                                                 <TouchableOpacity
                                                     activeOpacity={0.8}
@@ -186,20 +186,20 @@ const LoginScreen = ({navigation}: any) => {
                                                             fontWeight: "bold",
                                                         }}
                                                     >
-                                                        Login
+                                                        {t("loginNregister.login")}
                                                     </Text>
                                                 </TouchableOpacity>
                                             </>
                                         )}
                                         <View style={{flexDirection: "row", alignItems: "center", gap: 2}}>
-                                            <Text style={{color: ColorPallet.white}}>Don't have an account?</Text>
+                                            <Text style={{color: ColorPallet.white}}>{t("loginNregister.dontHaveAccount")}</Text>
                                             <TouchableOpacity activeOpacity={0.8} onPress={() => navigation.replace("Register")}>
                                                 <Text
                                                     style={{
                                                         color: ColorPallet.white,
                                                     }}
                                                 >
-                                                    Register
+                                                    {t("loginNregister.register")}
                                                 </Text>
                                             </TouchableOpacity>
                                         </View>

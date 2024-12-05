@@ -1,17 +1,41 @@
 import {ActivityIndicator, Text, View} from "react-native";
-import React from "react";
-import {MapProps} from "@/interface";
-import {color} from "@/app/styling";
+import {useEffect, useState} from "react";
+import {coordsInfo, MapProps} from "@/interface";
 import MapView from "react-native-maps";
 import tw from "twrnc";
-import {onDistanceChange} from "@/utils";
+import * as Location from "expo-location";
+import {destination, onDistanceChange} from "@/utils";
 import MapViewDirections from "react-native-maps-directions";
 import {ColorPallet} from "@/constants/Colors";
 
-export default function UserMapView({isSatelite, userLocation, destination, setIsCalculatingRoute, handleReady, handleError, waste}: MapProps) {
+export default function UserMapView({setIsCalculatingRoute, handleReady, handleError, waste, navigation}: MapProps) {
+    const [error, setError] = useState<string | null>(null);
+    const [userLocation, setUserLocation] = useState<coordsInfo | any>(null);
+    useEffect(() => {
+        (async () => {
+            try {
+                let {status} = await Location.requestForegroundPermissionsAsync();
+                if (status !== "granted") {
+                    navigation.goBack();
+                    return;
+                }
+                let location = await Location.getCurrentPositionAsync({
+                    accuracy: Location.Accuracy.High,
+                });
+                setUserLocation({
+                    coords: {
+                        latitude: location.coords.latitude,
+                        longitude: location.coords.longitude,
+                    },
+                });
+            } catch (error) {
+                setError("Failed to fetch location. Please try again.");
+            }
+        })();
+    }, []);
     return (
         <>
-            {userLocation ? (
+            {userLocation !== null ? (
                 <MapView
                     style={tw`w-full h-full`}
                     initialRegion={{
@@ -21,11 +45,10 @@ export default function UserMapView({isSatelite, userLocation, destination, setI
                         longitudeDelta: 0.0009,
                     }}
                     showsUserLocation={true}
-                    mapType={isSatelite ? "satellite" : "standard"}
                     showsPointsOfInterest={false}
                     showsCompass={true}
                     showsBuildings={true}
-                    showsMyLocationButton={false}
+                    showsMyLocationButton={true}
                     followsUserLocation
                     onRegionChange={() => onDistanceChange(userLocation, destination)}
                 >
@@ -34,7 +57,7 @@ export default function UserMapView({isSatelite, userLocation, destination, setI
                             onReady={handleReady}
                             onError={handleError}
                             onStart={() => setIsCalculatingRoute(true)}
-                            apikey={"AIzaSyBrGJDA2SfZPp5F4jgqFzMYmEtIo9m2BmM"}
+                            apikey={process.env.EXPO_PUBLIC_MAPS_API_KEY || "AIzaSyBoHxlKMQIhIeWkUTz7VsqwPgrnBe-F9M0"}
                             origin={userLocation.coords}
                             destination={destination}
                             strokeWidth={5}
@@ -46,7 +69,7 @@ export default function UserMapView({isSatelite, userLocation, destination, setI
                 </MapView>
             ) : (
                 <View style={tw`flex-1 justify-center items-center`}>
-                    {/* <ActivityIndicator size="large" color={color.primaryColor} /> */}
+                    <ActivityIndicator size="large" color={ColorPallet.primary} />
                     <Text>Loading Map...</Text>
                 </View>
             )}

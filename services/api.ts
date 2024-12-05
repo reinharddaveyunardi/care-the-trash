@@ -1,10 +1,11 @@
-import {FB_AUTH, FS_DB} from "@/services/FirebaseConfig";
+import {FB_AUTH, FB_STORAGE, FS_DB} from "@/services/FirebaseConfig";
 import {loginProps, OrderProps, registerProps} from "@/interface";
 import {createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile} from "firebase/auth";
 import {ValidationMessages} from "@/constants/messages";
 import {setDoc, doc, getDoc, collection, getDocs, increment, updateDoc} from "firebase/firestore";
 import {removeItemFromAsyncStorage, saveItemToAsyncStorage} from "./AsyncStorage";
 import {expObtained, generateRandomUid, pointObtained} from "@/utils";
+import {getDownloadURL, ref, uploadBytes} from "firebase/storage";
 
 // deklarasi / define auth dan db
 const auth = FB_AUTH;
@@ -69,6 +70,7 @@ export const register = async ({email, password, name}: registerProps) => {
             name: name,
             email: email,
             uid: response.user.uid,
+            imageUrl: "/temp.png",
         });
     } catch (error: any) {
         // jika register gagal / error
@@ -111,11 +113,13 @@ export const getProfile = async () => {
         let name = data.name || "";
         let email = data.email || "";
         let uid = data.uid || "";
-        return {name: name, email: email, uid: uid};
+        let imageUrl = data.imageUrl || "gs://care-the-trash.appspot.com/temp.png";
+        console.log(imageUrl);
+        return {name: name, email: email, uid: uid, imageUrl: imageUrl};
     }
     // jika data user tidak ada
     else {
-        return {name: "", email: "", uid: ""};
+        return {name: "", email: "", uid: "", imageUrl: "gs://care-the-trash.appspot.com/temp.png"};
     }
 };
 
@@ -174,6 +178,20 @@ export const getHistory = async () => {
     }
 };
 
+export const getQuest = async () => {
+    try {
+        const questRef = collection(db, `quest/`);
+        const questSnapshot = await getDocs(questRef);
+        const fetchedQuest = questSnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+        }));
+        return fetchedQuest;
+    } catch (error: any) {
+        console.log(error);
+    }
+};
+
 export const createOrder = async ({address, weight, wasteCategory, distance}: OrderProps) => {
     const orderUid = generateRandomUid();
     const orderData = {
@@ -187,13 +205,34 @@ export const createOrder = async ({address, weight, wasteCategory, distance}: Or
         uidOrder: orderUid,
         status: true,
     };
+
     try {
         await setDoc(doc(db, `users/${auth.currentUser?.uid}/history/${orderUid}`), orderData, {merge: true});
-        await updateDoc(doc(db, `users/${auth.currentUser?.uid}/pointInfo/${auth.currentUser?.uid}`), {
+        await setDoc(doc(db, `users/${auth.currentUser?.uid}/pointInfo/${auth.currentUser?.uid}`), {
             poin: increment(pointObtained(weight, distance)),
             exp: increment(expObtained(weight, distance)),
         });
     } catch (error: any) {
         console.log(error);
+    }
+};
+
+export const uploadImage = async (file: any) => {
+    try {
+        const storageRef = ref(FB_STORAGE, `users/${file.name}`);
+        await uploadBytes(storageRef, file);
+        const url = await getDownloadURL(storageRef);
+        const userRef = doc(db, `users/${auth.currentUser?.uid}`);
+        const userData = await getDoc(userRef);
+        if (userData.exists()) {
+            await setDoc(userRef, {...userData.data(), imageUrl: url}, {merge: true});
+            console.log("User data updated!");
+        } else {
+            console.log("User data not found!");
+        }
+        return url;
+    } catch (error) {
+        console.error("Image upload failed:", error);
+        return "";
     }
 };

@@ -1,0 +1,49 @@
+{
+    "language": "Indonesia",
+    "getStarted": {
+        "one": "Atur Sampah!, Ulangi!, Bumi Sehat!",
+        "two": "Atur sampah harian kamu!",
+        "three": "Sampah anda dikirim untuk didaur ulang!",
+        "four": "Buat bumimu sehat!",
+        "five": "Ingin tahu lebih banyak?"
+    },
+    "loginNregister": {
+        "enterEmail": "Masukkan email",
+        "enterPassword": "Masukkan kata sandi",
+        "enterFullname": "Masukkan nama lengkap",
+        "login": "Masuk",
+        "register": "Daftar",
+        "email": "Email",
+        "reset": "Reset",
+        "password": "Kata Sandi",
+        "forgotPassword": "Lupa Kata Sandi?",
+        "rememberMe": "Ingat Saya",
+        "fullname": "Nama Lengkap",
+        "alreadyHaveAccount": "Sudah punya akun?",
+        "dontHaveAccount": "Belum punya akun?"
+    },
+    "Menu": {
+        "point": "Poin",
+        "level": "Level",
+        "redeem": "Tukar",
+        "organic": "Organik",
+        "inorganic": "Anorganik",
+        "quest": "Misi",
+        "addToCart": "Tambahkan ke Keranjang",
+        "cartEmpty": "Keranjang Kosong",
+        "notEnoughPoint": "Point kamu tidak cukup"
+    },
+    "Profile": {
+        "general": "Informasi Umum",
+        "qComplete": "Misi Selesai",
+        "totalWaste": "Total Sampah",
+        "accountNSetting": "Akun & Pengaturan",
+        "accountSetting": "Pengaturan Akun",
+        "cLanguage": "Ganti Bahasa",
+        "accessibility": "Aksesibilitas",
+        "logout": "Keluar",
+        "verified": "Terverifikasi",
+        "notVerified": "Belum Terverifikasi",
+        "yourEmailNotVerified": "Email kamu belum terverifikasi"
+    }
+}
