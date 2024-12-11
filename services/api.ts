@@ -2,7 +2,7 @@ import {FB_AUTH, FB_STORAGE, FS_DB} from "@/services/FirebaseConfig";
 import {loginProps, OrderProps, registerProps} from "@/interface";
 import {createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, updateProfile} from "firebase/auth";
 import {ValidationMessages} from "@/constants/messages";
-import {setDoc, doc, getDoc, collection, getDocs, increment, updateDoc} from "firebase/firestore";
+import {setDoc, doc, getDoc, collection, getDocs, increment} from "firebase/firestore";
 import {removeItemFromAsyncStorage, saveItemToAsyncStorage} from "./AsyncStorage";
 import {expObtained, generateRandomUid, pointObtained} from "@/utils";
 import {getDownloadURL, ref, uploadBytes} from "firebase/storage";

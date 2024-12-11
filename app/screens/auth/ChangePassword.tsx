@@ -1,4 +1,4 @@
-import {SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View} from "react-native";
+import {SafeAreaView, Text, TextInput, TouchableOpacity, View} from "react-native";
 import {Ionicons} from "@expo/vector-icons";
 import {ColorPallet} from "@/constants/Colors";
 import {ResetPassword} from "@/services/handler";

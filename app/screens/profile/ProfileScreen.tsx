@@ -1,5 +1,5 @@
 import {useRef, useState} from "react";
-import {View, Text, Image, TouchableOpacity, SafeAreaView, ScrollView, RefreshControl, Switch} from "react-native";
+import {View, Text, Image, TouchableOpacity, SafeAreaView, ScrollView, RefreshControl} from "react-native";
 import Ionicons from "@expo/vector-icons/build/Ionicons";
 import {StatusBar} from "react-native";
 import {ColorPallet} from "@/constants/Colors";

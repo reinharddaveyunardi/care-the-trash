@@ -1,32 +1,25 @@
-import React, {useState, useEffect, useRef, useCallback} from "react";
-import {ScrollView, Text, TextInput, View, ActivityIndicator, StyleSheet, StatusBar} from "react-native";
-import MapView, {Region} from "react-native-maps";
+import React, {useState, useEffect, useRef} from "react";
+import {Text, TextInput, View, ActivityIndicator, StyleSheet, StatusBar} from "react-native";
 import {SafeAreaView} from "react-native-safe-area-context";
 import * as Location from "expo-location";
 import tw from "twrnc";
 import {coordsInfo} from "@/interface";
 import {TouchableOpacity} from "react-native-gesture-handler";
-import {doc, setDoc} from "firebase/firestore";
-import MapViewDirections from "react-native-maps-directions";
-import BottomSheet, {BottomSheetScrollView, BottomSheetView} from "@gorhom/bottom-sheet";
+import BottomSheet, {BottomSheetView} from "@gorhom/bottom-sheet";
 import {Ionicons} from "@expo/vector-icons";
 import {FontAwesome6} from "@expo/vector-icons";
-import {FB_AUTH, FS_DB} from "@/services/FirebaseConfig";
 import {ColorPallet} from "@/constants/Colors";
 import UserMapView from "@/components/UserMapView";
 import {createOrder} from "@/services/api";
-import {cleanAddress, destination, expObtained, getPlaceNameFromCoordinates, pointObtained} from "@/utils";
-import {getItemFromAsyncStorage, saveItemToAsyncStorage} from "@/services/AsyncStorage";
+import {expObtained, getPlaceNameFromCoordinates, pointObtained} from "@/utils";
 const OrderScreen: React.FC<any> = ({route, navigation}) => {
     const bottomSheetRef = useRef<BottomSheet>(null);
     const [address, setAddress] = useState<string>("");
     const [weight, setWeight] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
-    const [userLocation, setUserLocation] = useState<coordsInfo | null>(null);
     const [isOrderClicked, setIsOrderClicked] = useState<boolean>(false);
     const [distance, setDistance] = useState<number>(0);
-    const [isCalculatingRoute, setIsCalculatingRoute] = useState<boolean>(false);
     const {wasteCategory} = route.params;
 
     const handleOrder = async () => {
@@ -58,12 +51,6 @@ const OrderScreen: React.FC<any> = ({route, navigation}) => {
                 let location = await Location.getCurrentPositionAsync({
                     accuracy: Location.Accuracy.High,
                 });
-                setUserLocation({
-                    coords: {
-                        latitude: location.coords.latitude,
-                        longitude: location.coords.longitude,
-                    },
-                });
                 if (location.coords) {
                     const address = await getPlaceNameFromCoordinates(location.coords.latitude, location.coords.longitude);
                     setAddress(address);
@@ -73,34 +60,18 @@ const OrderScreen: React.FC<any> = ({route, navigation}) => {
             }
         })();
     }, []);
-    const handleReady = (result: any) => {
-        const distanceInKm = result.distance;
-        setDistance(distanceInKm);
-        setIsCalculatingRoute(false);
-    };
 
     const handleError = (error: any) => {
         console.error("Error calculating route: ", error);
-        setIsCalculatingRoute(false);
         setError("Failed to calculate route. Please try again.");
     };
-
-    function formatDistance(distance: number) {
-        return distance < Math.floor(distance) + 0.5 ? Math.floor(distance) : Math.round(distance);
-    }
 
     return (
         <SafeAreaView style={tw`flex-1 h-full`}>
             <StatusBar barStyle="light-content" backgroundColor={wasteCategory === "Organic" ? ColorPallet.primary : ColorPallet.blue} />
             {!isOrderClicked ? (
                 <View style={styles.container}>
-                    <UserMapView
-                        navigation={navigation}
-                        setIsCalculatingRoute={setIsCalculatingRoute}
-                        handleReady={handleReady}
-                        handleError={handleError}
-                        waste={wasteCategory}
-                    />
+                    <UserMapView navigation={navigation} handleError={handleError} waste={wasteCategory} />
                     <View style={{position: "absolute", top: "2%", left: "2.5%", justifyContent: "center", alignItems: "center", elevation: 5, zIndex: 2}}>
                         <TouchableOpacity
                             onPress={() => navigation.goBack()}
@@ -226,64 +197,9 @@ const OrderScreen: React.FC<any> = ({route, navigation}) => {
                     </BottomSheet>
                 </View>
             ) : (
-                <UserMapView
-                    navigation={navigation}
-                    setIsCalculatingRoute={setIsCalculatingRoute}
-                    handleReady={handleReady}
-                    handleError={handleError}
-                    waste={wasteCategory}
-                />
+                <UserMapView navigation={navigation} handleError={handleError} waste={wasteCategory} />
             )}
         </SafeAreaView>
-    );
-};
-
-const MapViewUser = ({
-    userLocation,
-    destination,
-    setIsCalculatingRoute,
-    handleReady,
-    handleError,
-}: {
-    userLocation: any;
-    destination: any;
-    setIsCalculatingRoute: any;
-    handleReady: any;
-    handleError: any;
-}) => {
-    return (
-        <>
-            {userLocation ? (
-                <MapView
-                    style={tw`w-full h-full`}
-                    initialRegion={{
-                        latitude: userLocation.coords.latitude,
-                        longitude: userLocation.coords.longitude,
-                        latitudeDelta: 0.0009,
-                        longitudeDelta: 0.0009,
-                    }}
-                    showsUserLocation={true}
-                >
-                    {destination && (
-                        <MapViewDirections
-                            onReady={handleReady}
-                            onError={handleError}
-                            onStart={() => setIsCalculatingRoute(true)}
-                            apikey={"AIzaSyBrGJDA2SfZPp5F4jgqFzMYmEtIo9m2BmM"}
-                            origin={userLocation.coords}
-                            destination={destination}
-                            strokeWidth={5}
-                            strokeColor="#047ae0"
-                        />
-                    )}
-                </MapView>
-            ) : (
-                <View style={tw`flex-1 justify-center items-center`}>
-                    <ActivityIndicator size="large" color={ColorPallet.primary} />
-                    <Text>Loading Map...</Text>
-                </View>
-            )}
-        </>
     );
 };
 

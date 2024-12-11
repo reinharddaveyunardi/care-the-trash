@@ -4,11 +4,11 @@ import {coordsInfo, MapProps} from "@/interface";
 import MapView from "react-native-maps";
 import tw from "twrnc";
 import * as Location from "expo-location";
-import {destination, onDistanceChange} from "@/utils";
+import {destination} from "@/utils";
 import MapViewDirections from "react-native-maps-directions";
 import {ColorPallet} from "@/constants/Colors";
 
-export default function UserMapView({setIsCalculatingRoute, handleReady, handleError, waste, navigation}: MapProps) {
+export default function UserMapView({handleError, waste, navigation}: MapProps) {
     const [error, setError] = useState<string | null>(null);
     const [userLocation, setUserLocation] = useState<coordsInfo | any>(null);
     useEffect(() => {
@@ -50,13 +50,10 @@ export default function UserMapView({setIsCalculatingRoute, handleReady, handleE
                     showsBuildings={true}
                     showsMyLocationButton={true}
                     followsUserLocation
-                    onRegionChange={() => onDistanceChange(userLocation, destination)}
                 >
                     {destination && (
                         <MapViewDirections
-                            onReady={handleReady}
                             onError={handleError}
-                            onStart={() => setIsCalculatingRoute(true)}
                             apikey={process.env.EXPO_PUBLIC_MAPS_API_KEY || "AIzaSyBoHxlKMQIhIeWkUTz7VsqwPgrnBe-F9M0"}
                             origin={userLocation.coords}
                             destination={destination}

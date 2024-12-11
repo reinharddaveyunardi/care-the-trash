@@ -1,11 +1,9 @@
-import {Button, StyleSheet, Text, TouchableOpacity, View} from "react-native";
-import React, {useEffect, useState} from "react";
+import {Text, View} from "react-native";
+import {useState} from "react";
 import {getQuest} from "@/services/api";
 import {QuestProps} from "@/interface";
-import {format} from "date-fns";
 import * as Progress from "react-native-progress";
 import {ColorPallet} from "@/constants/Colors";
-import {Ionicons} from "@expo/vector-icons";
 
 export default function Quest() {
     const [quest, setQuest] = useState<any | []>([]);

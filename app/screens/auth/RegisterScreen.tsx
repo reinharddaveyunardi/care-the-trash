@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import {useState} from "react";
 import {View, TextInput, Text, TouchableOpacity, StatusBar, ActivityIndicator, KeyboardAvoidingView, ImageBackground} from "react-native";
 import {SafeAreaView} from "react-native-safe-area-context";
 import {ColorPallet} from "@/constants/Colors";

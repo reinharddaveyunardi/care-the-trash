@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import {useState} from "react";
 import {RefreshControl, ScrollView, StatusBar, Text, TouchableOpacity, View} from "react-native";
 import {SafeAreaView} from "react-native-safe-area-context";
 import {Ionicons} from "@expo/vector-icons";

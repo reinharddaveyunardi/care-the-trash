@@ -16,8 +16,6 @@ export interface registerProps {
 
 // Map props
 export interface MapProps {
-    setIsCalculatingRoute: any;
-    handleReady: any;
     handleError: any;
     waste: string;
     navigation: any;

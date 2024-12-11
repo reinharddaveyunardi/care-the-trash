@@ -3,8 +3,7 @@ import {SafeAreaView, Text, View, TouchableOpacity} from "react-native";
 import tw from "twrnc";
 import Ionicons from "@expo/vector-icons/build/Ionicons";
 import {format} from "date-fns";
-import {collection, onSnapshot} from "firebase/firestore";
-import {FB_AUTH, FS_DB} from "@/services/FirebaseConfig";
+import {FS_DB} from "@/services/FirebaseConfig";
 import {ColorPallet} from "@/constants/Colors";
 function formatPrice(number: number) {
     return new Intl.NumberFormat("id-ID", {
@@ -47,21 +46,6 @@ const ReceiptScreen: React.FC<any> = ({route, navigation}) => {
     const {address, weight, distance, wasteCategory, time, expObtained, pointObtained} = route.params;
     const formattedOrderTime = time ? format(new Date(time), "MM/dd/yyyy HH:mm") : "N/A";
     const db = FS_DB;
-    const fetchHistory = () => {
-        const user = FB_AUTH.currentUser;
-        if (user) {
-            const historyRef = collection(db, `users/${user.uid}/history/`);
-            const query = onSnapshot(historyRef, (snapshot) => {
-                const fetchedHistory = snapshot.docs.map((doc) => ({
-                    id: doc.id,
-                    ...doc.data(),
-                }));
-                setHistory(fetchedHistory);
-                setFilteredHistory(fetchedHistory);
-            });
-            return () => query();
-        }
-    };
 
     const applyFilters = () => {
         let filtered = [...history];
@@ -74,11 +58,6 @@ const ReceiptScreen: React.FC<any> = ({route, navigation}) => {
 
         setFilteredHistory(filtered);
     };
-
-    useEffect(() => {
-        fetchHistory();
-    }, []);
-
     useEffect(() => {
         applyFilters();
     }, [timeFilter]);

@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from "react";
+import {useState, useEffect} from "react";
 import {Text, StyleSheet, Animated} from "react-native";
 
 const CustomAlert = ({visible, message, duration = 3000, onClose}: any) => {

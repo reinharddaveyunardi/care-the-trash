@@ -1,4 +1,3 @@
-import {NavigationContainer} from "@react-navigation/native";
 import GetStartedScreen from "./screens/start/GetStartedScreen";
 import LoginScreen from "./screens/auth/LoginScreen";
 import MenuScreen from "./screens/dashboard/DashboardScreen";
@@ -91,7 +90,6 @@ export default function Index() {
             setIsStillLoggedIn(true);
         }
     };
-
     try {
         getUserLogin();
     } catch (e) {

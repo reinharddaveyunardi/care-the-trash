@@ -1,4 +1,4 @@
-import React, {useState, useRef} from "react";
+import {useState, useRef} from "react";
 import {StatusBar, Text, TouchableOpacity, View, RefreshControl, ScrollView, Image} from "react-native";
 import {SafeAreaView} from "react-native-safe-area-context";
 import * as Progress from "react-native-progress";

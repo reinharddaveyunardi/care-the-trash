@@ -1,4 +1,3 @@
-import React from "react";
 import {Image, Linking, Text, TouchableOpacity, View} from "react-native";
 import {StatusBar} from "expo-status-bar";
 import OnBoard from "react-native-onboarding-swiper";
